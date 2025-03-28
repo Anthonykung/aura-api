@@ -55,7 +55,9 @@ export default async function Help({
   id: string;
 }) {
 
-  const content = await generateResponse('What are you? How do I use this?') || helpText;
+  // const content = await generateResponse('What are you? How do I use this?') || helpText;
+
+  const content = helpText;
 
   await interactionResponseWithId({ interactionId: id, content: content, status: 'info' });
 }

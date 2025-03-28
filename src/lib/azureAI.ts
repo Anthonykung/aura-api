@@ -29,10 +29,17 @@ const endpoint = process.env.AZURE_OPENAI_ENDPOINT || "Your endpoint";
 const apiKey = process.env.AZURE_OPENAI_API_KEY || "Your API key";
 
 // Required Azure OpenAI deployment name and API version
-const apiVersion = process.env.OPENAI_API_KEY || "2024-08-01-preview";
-const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || "gpt-4o-mini"; //This must match your deployment name.
+const apiVersion = "2024-07-18";
+const deploymentName = "gpt-4o-mini";
 
 function getClient(): AzureOpenAI {
+
+  console.log("== Azure OpenAI Configuration ==");
+  console.log(`Endpoint: ${endpoint}`);
+  console.log(`API Key: ${apiKey}`);
+  console.log(`API Version: ${apiVersion}`);
+  console.log(`Deployment Name: ${deploymentName}`);
+
   return new AzureOpenAI({
     endpoint,
     apiKey,
@@ -58,11 +65,6 @@ function createMessages({
     ],
     model: "",
   };
-}
-async function printChoices(completion: ChatCompletion): Promise<void> {
-  for (const choice of completion.choices) {
-    console.log(choice.message);
-  }
 }
 
 const client = getClient();

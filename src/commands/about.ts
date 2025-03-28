@@ -43,7 +43,9 @@ export default async function About({
   id: string;
 }) {
 
-  const content = await generateResponse('Tell me about yourself') || aboutText;
+  // const content = await generateResponse('Tell me about yourself') || aboutText;
+
+  const content = aboutText;
 
   await interactionResponseWithId({ interactionId: id, content: content, status: 'info' });
 }

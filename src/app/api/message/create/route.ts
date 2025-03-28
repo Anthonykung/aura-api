@@ -46,13 +46,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-
-  console.log('MESSAGE_CREATE event received');
-
   try {
-    const body = JSON.parse(await request.text());
-
-    console.log('MESSAGE_CREATE event:', body);
+    const body = await request.json();
 
     // Check if self is the author
     if (body.d.author.id === DISCORD_CLIENT_ID) {
@@ -111,17 +106,22 @@ export async function POST(
       });
     }
 
-    // Pass to generative model
-    const response = await generateResponse(body.d.content);
-    const responseEmbed = await embedSystemMessageBuilder({
-      content: response as string,
-      status: 'info',
-    });
+    // // Pass to generative model
+    // const response = await generateResponse(body.d.content);
 
-    await sendMessageToGuild(body.d.channel_id, responseEmbed);
+    // console.log('Response:', response);
+
+    // const responseEmbed = await embedSystemMessageBuilder({
+    //   content: response as string,
+    //   status: 'info',
+    // });
+
+    // await sendMessageToGuild(body.d.channel_id, responseEmbed);
 
     // Send Translated Message
-    const translations = await translateText(body.d.content);
+    const translations = await translateText({
+      text: body.d.content,
+    });
     const translatedText = await embedSystemMessageBuilder({
       content: translations.flatMap((entry: any, entryIndex: number) =>
         entry.translations.map((t: any, langIndex: number) =>

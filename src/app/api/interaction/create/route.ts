@@ -34,7 +34,7 @@ export async function POST(
       d: any;
       t: string;
       s: number;
-    } = JSON.parse(await request.text());
+    } = await request.json();
 
     console.log('Interaction Request: ', body);
 
