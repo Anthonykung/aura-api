@@ -21,10 +21,36 @@
 import prisma from '@/lib/prisma';
 import { Embed } from '@/types/embeds';
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+async function sendMessageToGuild(channelId: string, embed: Embed[]) {
+  try {
+    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ embeds: embed }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending message to guild:', error);
+    throw error;
+  }
+}
+
+async function updateGuildData(guildId: string, data: any) {
+  try {
+    return await prisma.guild.update({
+      where: { guildId },
+      data,
+    });
+  } catch (error) {
+    console.error('Error updating guild data:', error);
+    throw error;
+  }
+}
+
+export async function POST(request: Request) {
   try {
     const res: {
       op: number;
@@ -32,14 +58,10 @@ export async function POST(
       t: string;
       s: number;
     } = await request.json();
-
     const guildData = res.d;
 
-    // Upsert guild data
-    prisma.guild.upsert({
-      where: {
-        guildId: guildData.id,
-      },
+    const guild = await prisma.guild.upsert({
+      where: { guildId: guildData.id },
       update: {
         name: guildData.name,
         ownerId: guildData.owner_id,
@@ -68,196 +90,42 @@ export async function POST(
         data: guildData,
         auraVersion: process.env.AURA_VERSION,
       },
-    })
-      .then((response) => {
-        // if guild is not initialized or aura version is not set
-        if (response && (!response.initialized || !response.auraVersion)) {
+    });
 
-          // Find public_updates_channel_id or safety_alerts_channel_id or system_channel_id
-          const public_updates_channel_id = guildData.public_updates_channel_id;
-          const safety_alerts_channel_id = guildData.safety_alerts_channel_id;
-          const system_channel_id = guildData.system_channel_id;
+    const messageChannelId =
+      guildData.public_updates_channel_id ||
+      guildData.safety_alerts_channel_id ||
+      guildData.system_channel_id;
 
-          // Create message send channel id
-          const message_send_channel_id = public_updates_channel_id || safety_alerts_channel_id || system_channel_id;
-
-          console.log(`Sending message to channel: ${message_send_channel_id}`);
-
-          // Create embed message
-          const embed: Embed[] = [
+    if (!guild.initialized || guild.auraVersion !== process.env.AURA_VERSION) {
+      const embed: Embed[] = guild.initialized
+        ? [
             {
-              "title": "👋 Welcome to Advanced Universal Recreational Activities (AURA)!",
-              "description": `Hey there! I’m **AURA**, your friendly AI-powered bot designed to keep your server **active, fun, and full of good vibes**. 💬✨\n\nFrom **daily conversation starters** to **trivia nights**, **event hosting**, and more, I’ve got a whole toolkit of features to bring your community together and keep the energy high. 🧠🎮\n\nWhether you’re here to **gamify your server**, spark new friendships, or just keep the conversation flowing, I’m here to help you build an awesome space.\n\nLet’s make this server the place everyone wants to be! 🚀💖`,
-              "color": 0x00ff00
+              title: `New Advanced Universal Recreational Activities Version: ${process.env.AURA_VERSION}`,
+              description: `AURA has been updated to version ${process.env.AURA_VERSION}! 🎉`,
+              color: 0x0000ff,
+            },
+          ]
+        : [
+            {
+              title: "👋 Welcome to Advanced Universal Recreational Activities (AURA)!",
+              description: `Hey there! I’m **AURA**, your friendly AI-powered bot designed to keep your server **active, fun, and full of good vibes**. 💬✨\n\nFrom **daily conversation starters** to **trivia nights**, **event hosting**, and more, I’ve got a whole toolkit of features to bring your community together and keep the energy high. 🧠🎮\n\nWhether you’re here to **gamify your server**, spark new friendships, or just keep the conversation flowing, I’m here to help you build an awesome space.\n\nLet’s make this server the place everyone wants to be! 🚀💖`,
+              color: 0x00ff00,
             },
           ];
 
-          // Send message to the guild
-          fetch(`https://discord.com/api/v10/channels/${message_send_channel_id}/messages`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              embeds: embed as Embed[],
-            }),
-          })
-            // Log response.body
-            .then((response) => response.json())
-            .then((data) => {
-              console.log('Guild Create Message Response:', data);
-              // Update guild with message id
-              prisma.guild.update({
-                where: {
-                  guildId: guildData.id,
-                },
-                data: {
-                  initialized: new Date(),
-                  auraVersion: process.env.AURA_VERSION,
-                },
-              })
-                .then((response) => {
-                  console.log('Guild Initialized:', response);
+      console.log(`Sending message to channel: ${messageChannelId}`);
+      await sendMessageToGuild(messageChannelId, embed);
 
-                  return Response.json({
-                    success: true,
-                    op: null,
-                    d: null,
-                  }, {
-                    status: 200,
-                  });
-                })
-                .catch((error) => {
-                  console.error('Error updating guild:', error);
-
-                  return Response.json({
-                    success: false,
-                    error: error,
-                  }, {
-                    status: 500,
-                  });
-                });
-            })
-            .catch((error) => {
-              console.error('Error updating server message:', error);
-
-              return Response.json({
-                success: false,
-                error: error,
-              }, {
-                status: 500,
-              });
-            });
-        }
-        else if (response && response.initialized && response.auraVersion !== process.env.AURA_VERSION) {
-          // Update guild with new AURA version
-          prisma.guild.update({
-            where: {
-              guildId: guildData.id,
-            },
-            data: {
-              auraVersion: process.env.AURA_VERSION,
-            },
-          })
-            .then((response) => {
-              console.log('Guild AURA Version Updated:', response);
-
-              // Find public_updates_channel_id or safety_alerts_channel_id or system_channel_id
-              const public_updates_channel_id = guildData.public_updates_channel_id;
-              const safety_alerts_channel_id = guildData.safety_alerts_channel_id;
-              const system_channel_id = guildData.system_channel_id;
-
-              // Create message send channel id
-              const message_send_channel_id = public_updates_channel_id || safety_alerts_channel_id || system_channel_id;
-
-              console.log(`Sending message to channel: ${message_send_channel_id}`);
-
-              // Create embed message
-              const embed: Embed[] = [
-                {
-                  title: `New Advanced Universal Recreational Activities Version: ${process.env.AURA_VERSION}`,
-                  description: `AURA has been updated to version ${process.env.AURA_VERSION}! 🎉`,
-                  color: 0x0000ff,
-                },
-              ];
-
-              // Send message to the guild
-              fetch(`https://discord.com/api/v10/channels/${message_send_channel_id}/messages`, {
-                method: 'POST',
-                headers: {
-                  Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  embeds: embed as Embed[],
-                }),
-              })
-                // Log response.body
-                .then((response) => response.json())
-                .then((data) => {
-                  console.log('Guild Create Message Response:', data);
-                  // Update guild with message id
-                  prisma.guild.update({
-                    where: {
-                      guildId: guildData.id,
-                    },
-                    data: {
-                      initialized: new Date(),
-                    },
-                  })
-                    .then((response) => {
-                      console.log('Guild Initialized:', response);
-
-                      return Response.json({
-                        success: true,
-                        op: null,
-                        d: null,
-                      }, {
-                        status: 200,
-                      });
-                    })
-                    .catch((error) => {
-                      console.error('Error updating guild:', error);
-
-                      return Response.json({
-                        success: false,
-                        error: error,
-                      }, {
-                        status: 500,
-                      });
-                    });
-                });
-            })
-            .catch((error) => {
-              console.error('Error updating guild:', error);
-
-              return Response.json({
-                success: false,
-                error: error,
-              }, {
-                status: 500,
-              });
-            });
-        }
-      })
-      .catch((error) => {
-        console.error('Error upserting guild data:', error);
-
-        return Response.json({
-          success: false,
-          error: error,
-        }, {
-          status: 500,
-        });
+      await updateGuildData(guildData.id, {
+        initialized: new Date(),
+        auraVersion: process.env.AURA_VERSION,
       });
-  }
-  catch (e) {
-    return Response.json({
-      success: false,
-      error: e
-    }, {
-      status: 500,
-    });
+    }
+
+    return Response.json({ success: true, op: null, d: null }, { status: 200 });
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return Response.json({ success: false, error }, { status: 500 });
   }
 }

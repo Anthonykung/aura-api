@@ -18,3 +18,43 @@
 // @date   Created on March 28 2025, 06:02 -07:00
 */
 
+import { AzureOpenAI } from "openai";
+
+// You will need to set these environment variables or edit the following values
+const endpoint = process.env.AZURE_OPENAI_ENDPOINT || "Your endpoint";
+const apiKey = process.env.AZURE_OPENAI_API_KEY || "Your API key";
+
+// Required Azure OpenAI deployment name and API version
+const apiVersion = process.env.OPENAI_API_VERSION || "2024-07-01";
+const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || "dall-e-3";
+
+function getClient(): AzureOpenAI {
+  return new AzureOpenAI({
+    endpoint,
+    apiKey,
+    apiVersion,
+    deployment: deploymentName,
+  });
+}
+
+const client = getClient();
+
+export default async function generateImage({
+  prompt,
+  numberOfImagesToGenerate = 1,
+}: {
+  prompt: string;
+  numberOfImagesToGenerate: number;
+}) {
+  console.log("== Image Generation ==");
+
+  const results = await client.images.generate({
+    prompt,
+    size: "1024x1024",
+    n: numberOfImagesToGenerate,
+    model: "",
+    style: "vivid", // or "natural"
+  });
+
+  return results.data.map((image) => image.url);
+}
