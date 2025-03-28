@@ -73,6 +73,8 @@ cp .env.example .env
 
 Fill in the required fields, such as database credentials, API keys, and service bus configs.
 
+> **Note**: You'll need to set up a PostgreSQL database and Prisma Accelerate to run this server.
+
 ### 3. Install dependencies
 
 ```bash
