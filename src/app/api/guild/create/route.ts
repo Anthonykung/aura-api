@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       d: any;
       t: string;
       s: number;
-    } = await request.json();
+    } = JSON.parse(await request.text());
     const guildData = res.d;
 
     const guild = await prisma.guild.upsert({
