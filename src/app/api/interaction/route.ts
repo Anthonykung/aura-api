@@ -46,7 +46,7 @@ export async function POST(
 ) {
   try {
     const headersList = await headers();
-    const body: InteractionRequest = await request.json();
+    const body: InteractionRequest = JSON.parse(await request.text());
 
     console.log('Interaction Request: ', body);
 
