@@ -20,7 +20,7 @@
 
 type TranslateOptions = {
   text: string
-  to: string[]
+  to?: string[]
 }
 
 export async function translateText({
@@ -29,14 +29,17 @@ export async function translateText({
 }: TranslateOptions): Promise<any> {
   const endpoint = `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0${to.map(lang => `&to=${lang}`).join('')}&profanityAction=Marked`
 
+  console.log('[translateText]', text, to, endpoint)
+
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Ocp-Apim-Subscription-Key': process.env.AZURE_AI_KEY as string,
+        'Ocp-Apim-Subscription-Region': process.env.AZURE_AI_REGION as string,
         'Content-Type': 'application/json; charset=UTF-8'
       },
-      body: JSON.stringify([{ Text: text }])
+      body: JSON.stringify([{ "text": text }])
     })
 
     if (!res.ok) {
