@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Advanced Universal Recreational Activities
 
-## Getting Started
+AURA is a Discord bot that provides a variety of fun and engaging activities to keep your server members entertained and active. From daily conversation starters to trivia nights, AURA offers a range of features to boost engagement and build a strong community. Whether you’re looking to gamify your server, host events, or simply keep the conversation flowing, AURA has you covered.
 
-First, run the development server:
+### 💬 **Conversation Starters**
+- **Daily Question**: Ask fun, thought-provoking, or themed questions once a day (e.g., “What’s your favorite childhood cartoon?”).
+- **This or That Polls**: Users vote between two options; encourages replies and debates.
+- **Topic Roulette**: Randomly suggest conversation topics when the server is quiet.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 🎯 **Gamification & Engagement**
+- **XP & Levels**: Reward users for chatting with XP; unlock roles, emojis, or permissions.
+- **Badges/Achievements**: Custom badges for milestones like “Chatterbox” or “Welcomer.”
+- **Leaderboards**: Friendly competition based on activity (daily, weekly, monthly).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🧠 **Mini Games & Challenges**
+- **Trivia Nights**: Scheduled or pop-up trivia with leaderboards.
+- **Word Games**: Hangman, Wordle-style games, or typing challenges.
+- **AI-Powered Games**: Drawing prompts, roleplaying, or story-building games using GPT.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+### 🧩 **User-Curated Fun**
+- **Custom Commands**: Let users submit inside jokes, memes, or quotes.
+- **“Hot Take” Generator**: Posts a spicy take and lets users react.
+- **Art/Photo Prompts**: Weekly prompts for artists, writers, or photographers in the community.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 🤖 **Smart Interactions**
+- **AI Chat Mode**: An AI character who joins discussions or tells stories.
+- **Voice Channel Games**: Host games where people join a voice channel, and the bot acts as a game master.
