@@ -46,13 +46,11 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+
+  console.log('MESSAGE_CREATE event received');
+
   try {
-    const body: {
-      op: number;
-      d: any;
-      t: string;
-      s: number;
-    } = await request.json();
+    const body = JSON.parse(await request.text());
 
     console.log('MESSAGE_CREATE event:', body);
 
