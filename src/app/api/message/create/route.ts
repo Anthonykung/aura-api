@@ -221,8 +221,9 @@ export async function POST(
           await handleImageGeneration(message);
         } else if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> translate`)) {
           await handleTranslation(message);
+        } else {
+          throw new Error('Unknown command');
         }
-        return Response.json({ success: true }, { status: 200 });
       }
       await handleGenerativeResponse(message);
       return Response.json({ success: true }, { status: 200 });
