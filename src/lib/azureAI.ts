@@ -78,9 +78,14 @@ export default async function generateResponse(text: string) {
         throw new Error(`Chat completion failed: ${error.error.message}`);
       }
     }
-    const responseData = await response.json();
+    let responseData = await response.json();
 
     console.log("Chat completion response:", responseData);
+
+    // Check if response starts with ```json and/or end with ```
+    if (responseData?.choices[0]?.message?.content.startsWith("```json")) {
+      responseData.choices[0].message.content = responseData.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "");
+    }
 
     // Get the content of the completion
     const content = JSON.parse(responseData?.choices[0]?.message?.content);
