@@ -54,7 +54,7 @@ export default async function generateResponse(text: string) {
     messages: messages.messages,
     model: messages.model,
     // temperature: 0.7,
-    // max_tokens: 3000,
+    max_tokens: 128,
     // top_p: 1,
     // frequency_penalty: 0,
     // presence_penalty: 0,
@@ -68,8 +68,9 @@ export default async function generateResponse(text: string) {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Chat completion failed: ${response.status} ${response.statusText} - ${error}`);
+      const error = await response.json();
+      console.error("Chat completion error:", error);
+      throw new Error(`Chat completion failed: ${response.status} ${response.statusText} - ${error.message}`);
     }
     const responseData = await response.json();
 

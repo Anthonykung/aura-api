@@ -50,8 +50,11 @@ async function handleImageGeneration(message: any) {
   const match = message.content.match(regex);
 
   if (match) {
-    const numberOfImages: number = parseInt(match[1], 10);
+    let numberOfImages: number = parseInt(match[1], 10);
     const prompt: string = match[2];
+
+    // Azure limitation
+    numberOfImages = 1;
 
     console.log('Number of images:', numberOfImages);
     console.log('Prompt:', prompt);
@@ -71,8 +74,13 @@ async function handleImageGeneration(message: any) {
   } else {
     console.log('Invalid format');
 
+    // const responseEmbed = await embedSystemMessageBuilder({
+    //   content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
+    //   status: 'error',
+    // });
+
     const responseEmbed = await embedSystemMessageBuilder({
-      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
+      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image 1 <prompt>\``,
       status: 'error',
     });
 

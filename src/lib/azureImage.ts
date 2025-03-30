@@ -53,10 +53,12 @@ export default async function generateImage({
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Image generation failed: ${response.status} ${response.statusText} - ${error}`);
+      const error = await response.json();
+      console.error("Image generation error:", error);
+      throw new Error(`Image generation failed: ${response.status} ${response.statusText} - ${error.message}`);
     }
     const responseData = await response.json();
+    console.log("Image generation response:", responseData);
     return responseData.data.map((image: { url: string }) => image.url);
   } catch (error) {
     console.error("Error generating image:", error);
