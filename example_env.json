@@ -1,0 +1,110 @@
+[
+  {
+    "name": "DATABASE_URL",
+    "value": ""
+  },
+  {
+    "name": "DIRECT_URL",
+    "value": "postgresql://{user}:{password}@{project}.writer.postgres.database.azure.com:5432/{database}?sslmode=require"
+  },
+  {
+    "name": "DISCORD_CLIENT_ID",
+    "value": ""
+  },
+  {
+    "name": "DISCORD_TOKEN",
+    "value": ""
+  },
+  {
+    "name": "DISCORD_PUBLIC_KEY",
+    "value": ""
+  },
+  {
+    "name": "API_SERVER_URL",
+    "value": "https://your-domain/api"
+  },
+  {
+    "name": "AURA_VERSION",
+    "value": "v0.0.20"
+  },
+  {
+    "name": "EVENT_GRID_ENDPOINT",
+    "value": ""
+  },
+  {
+    "name": "EVENT_GRID_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_SERVICE_BUS_FQDN",
+    "value": ""
+  },
+  {
+    "name": "AZURE_SERVICE_BUS_CONNECTION_STRING",
+    "value": ""
+  },
+  {
+    "name": "AZURE_AI_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_AI_REGION",
+    "value": ""
+  },
+  {
+    "name": "AZURE_STORAGE_ACCESS_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_STORAGE_CONNECTION_STRING",
+    "value": ""
+  },
+  {
+    "name": "AZURE_ACR_NAME",
+    "value": ""
+  },
+  {
+    "name": "AZURE_CONTAINER_APP",
+    "value": ""
+  },
+  {
+    "name": "AZURE_RESOURCE_GROUP",
+    "value": ""
+  },
+  {
+    "name": "AZURE_OPENAI_ENDPOINT",
+    "value": ""
+  },
+  {
+    "name": "AZURE_OPENAI_API_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_CHAT_ENDPOINT",
+    "value": ""
+  },
+  {
+    "name": "AZURE_CHAT_MODEL",
+    "value": ""
+  },
+  {
+    "name": "AZURE_CHAT_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_IMAGE_ENDPOINT",
+    "value": ""
+  },
+  {
+    "name": "AZURE_IMAGE_MODEL",
+    "value": ""
+  },
+  {
+    "name": "AZURE_IMAGE_KEY",
+    "value": ""
+  },
+  {
+    "name": "AZURE_IMAGE_VERSION",
+    "value": ""
+  }
+]

@@ -43,9 +43,7 @@ export default async function About({
   token: string;
 }) {
 
-  // const content = await generateResponse('Tell me about yourself') || aboutText;
-
-  const content = aboutText;
+  const content = await generateResponse('Tell me about yourself') || aboutText;
 
   await interactionResponse({ interactionToken: token, content: content, status: 'info' });
 }
