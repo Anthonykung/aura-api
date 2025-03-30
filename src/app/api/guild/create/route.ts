@@ -21,6 +21,8 @@
 import prisma from '@/lib/prisma';
 import { Embed } from '@/types/embeds';
 
+export const maxDuration = 60;
+
 async function sendMessageToGuild(channelId: string, embed: Embed[]) {
   try {
     const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {

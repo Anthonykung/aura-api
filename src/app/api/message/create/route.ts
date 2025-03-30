@@ -26,6 +26,8 @@ import { MessageEvent } from "@/types/message";
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID } = process.env;
 
+export const maxDuration = 60;
+
 async function sendMessageToGuild(channelId: string, embed: Embed[]) {
   try {
     const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
@@ -164,6 +166,18 @@ export async function POST(
       if (message.author.id === DISCORD_CLIENT_ID) {
         return Response.json({ success: true }, { status: 200 });
       }
+      if (body.attempts === 2) {
+        const errorEmbed = await embedSystemMessageBuilder({
+          content: [
+            {
+              "name": "Self-Healing in Progress – Please Stand By for Virtual Hugs",
+              "value": "🧠 The system sensed a disturbance in the code force... but don’t worry! Our auto-healing algorithms are currently doing yoga, sipping binary tea 🍵, and gently coaxing things back to life. Hang tight – good vibes and error patching in progress ✨🔄",
+            },
+          ],
+          status: 'warning',
+        });
+        await sendMessageToGuild(message.channel_id, errorEmbed);
+      }
       const mention = message.mentions.find((m: any) => m.id === DISCORD_CLIENT_ID);
       if (mention && message.author.id !== DISCORD_CLIENT_ID) {
         if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> generate image`) || message.content.startsWith(`generate image`)) {
@@ -178,16 +192,26 @@ export async function POST(
     }
     catch (error) {
       console.error('Error handling message:', error);
-      if (body.attempts === 0) {
+      if (body.attempts === 1) {
         const errorEmbed = await embedSystemMessageBuilder({
-          content: 'An error occurred while processing your request. We are attempting to fix it...',
+          content: [
+            {
+              "name": "System Glitch Detected – Activating Emergency Snacc Protocols!",
+              "value": "💥 Oopsie-woopsie! Something went bonk in the system 😵‍💫 Don't panic! Our digital hamsters are sprinting in their wheels trying to self-heal the issue... ⚙️💨 We'll be back in a jiffy (hopefully 👀).",
+            },
+          ],
           status: 'warning',
         });
         await sendMessageToGuild(message.channel_id, errorEmbed);
       }
-      else if (body.attempts === 9) {
+      else if (body.attempts === 10) {
         const retryEmbed = await embedSystemMessageBuilder({
-          content: 'An error occurred while processing your request. We are unable to fix it. Please try again later.',
+          content: [
+            {
+              "name": "Self-Healing Failed – Send Cookies and Moral Support!",
+              "value": "🥀 Uhh... welp. We tried duct taping the error back together, but it's still very broken 🧃💔 The self-healing spell fizzled out. Please try again later or poke a human for help 😭🧑‍🔧",
+            },
+          ],
           status: 'error',
         });
         await sendMessageToGuild(message.channel_id, retryEmbed);

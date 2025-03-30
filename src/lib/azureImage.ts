@@ -18,37 +18,48 @@
 // @date   Created on March 28 2025, 06:02 -07:00
 */
 
-import { AzureOpenAI } from "openai";
-// import { AzureKeyCredential } from "@azure/core-auth";
 
 // You will need to set these environment variables or edit the following values
-const endpoint = process.env.AZURE_OPENAI_ENDPOINT as string;
-const apiKey = process.env.AZURE_OPENAI_API_KEY as string;
-
-const client = new AzureOpenAI({
-  // azureADTokenProvider: new AzureKeyCredential(apiKey),
-  deployment: process.env.AZURE_OPENAI_DEPLOYMENT as string,
-  apiVersion: "2023-05-15",
-  apiKey: apiKey,
-  endpoint: endpoint,
-});
+const endpoint = process.env.AZURE_IMAGE_ENDPOINT as string;
+const apiKey = process.env.AZURE_IMAGE_KEY as string;
 
 export default async function generateImage({
   prompt,
   numberOfImagesToGenerate = 1,
+  size = "1024x1024",
 }: {
   prompt: string;
   numberOfImagesToGenerate: number;
+  size?: "1024x1024" | "256x256" | "512x512" | "1792x1024" | "1024x1792" | null | undefined;
 }) {
   console.log("== Image Generation ==");
 
-  const results = await client.images.generate({
-    prompt,
-    size: "1024x1024",
-    n: numberOfImagesToGenerate,
-    model: "",
-    style: "vivid", // or "natural"
-  });
+  const url = `${endpoint}`;
+  const headers = {
+    "Content-Type": "application/json",
+    "api-key": apiKey,
+  };
 
-  return results.data.map((image) => image.url);
+  const payload = {
+    prompt: prompt,
+    size: size,
+    n: numberOfImagesToGenerate,
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Image generation failed: ${response.status} ${response.statusText} - ${error}`);
+    }
+    const responseData = await response.json();
+    return responseData.data.map((image: { url: string }) => image.url);
+  } catch (error) {
+    console.error("Error generating image:", error);
+    throw error;
+  }
 }

@@ -18,17 +18,9 @@
 // @date   Created on March 28 2025, 06:01 -07:00
 */
 
-import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
-import { AzureKeyCredential } from "@azure/core-auth";
-
 // You will need to set these environment variables or edit the following values
-const endpoint = process.env.AZURE_OPENAI_ENDPOINT as string;
-const apiKey = process.env.AZURE_OPENAI_API_KEY as string;
-
-const client = ModelClient(
-  endpoint,
-  new AzureKeyCredential(apiKey),
-);
+const endpoint = process.env.AZURE_CHAT_ENDPOINT as string;
+const apiKey = process.env.AZURE_CHAT_KEY as string;
 
 const systemInstruction = Buffer.from(process.env.AURA_SYSTEM_INSTRUCTION as string, 'base64').toString('utf-8').trim();
 
@@ -45,24 +37,48 @@ function createMessages({
         content: text,
       },
     ],
-    model: "",
+    model: process.env.AZURE_CHAT_MODEL as string,
   };
 }
 
 export default async function generateResponse(text: string) {
   const messages = createMessages({ text });
-  const chatCompletion = await client.path("/chat/completions").post({
-    body: {
-      messages: messages.messages,
-    },
-  });
 
-  if (isUnexpected(chatCompletion)) {
-    throw chatCompletion.body.error;
+  const url = `${endpoint}`;
+  const headers = {
+    "Content-Type": "application/json",
+    "api-key": apiKey,
+  };
+
+  const payload = {
+    messages: messages.messages,
+    model: messages.model,
+    // temperature: 0.7,
+    // max_tokens: 3000,
+    // top_p: 1,
+    // frequency_penalty: 0,
+    // presence_penalty: 0,
+    // stop: ["\n"],
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Chat completion failed: ${response.status} ${response.statusText} - ${error}`);
+    }
+    const responseData = await response.json();
+
+    // Get the content of the completion
+    const content = responseData?.body?.choices[0]?.message?.content;
+
+    return content;
+  } catch (error) {
+    console.error("Error generating response:", error);
+    throw error;
   }
-
-  // Get the content of the completion
-  const content = chatCompletion?.body?.choices[0]?.message?.content;
-
-  return content;
 }
