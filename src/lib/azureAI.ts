@@ -32,6 +32,7 @@ function createMessages({
   return {
     messages: [
       { role: "system", content: systemInstruction },
+      { role: "assistant", content: "{\"color\":4879359,\"content\":\"Hello!I'mAURA,yourfriendlyAIfunbot.HowcanIhelpyoutoday?\"}" },
       {
         role: "user",
         content: text,
@@ -82,7 +83,7 @@ export default async function generateResponse(text: string) {
     console.log("Chat completion response:", responseData);
 
     // Get the content of the completion
-    const content = responseData?.choices[0]?.message?.content;
+    const content = JSON.parse(responseData?.choices[0]?.message?.content);
 
     return content;
   } catch (error) {

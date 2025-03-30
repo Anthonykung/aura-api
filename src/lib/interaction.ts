@@ -162,9 +162,9 @@ async function sendDiscordRequest(url: string, method: string, body: any) {
 }
 
 // Helper function to build embed or text response
-function buildResponse(content: string, type: 'embed' | 'text', status: 'error' | 'success' | 'warning' | 'info') {
+function buildResponse(content: string, type: 'embed' | 'text', status: 'error' | 'success' | 'warning' | 'info', color?: number) {
   if (type === 'embed') {
-    const color = status === 'error' ? 0xff0000 : status === 'success' ? 0x00ff00 : status === 'warning' ? 0xffff00 : 0x0000ff;
+    color = color ?? status === 'error' ? 0xff0000 : status === 'success' ? 0x00ff00 : status === 'warning' ? 0xffff00 : 0x0000ff;
     return singleStringColorEmbedBuilder(content, color);
   }
   return splitContent(content);
@@ -176,16 +176,18 @@ export async function interactionResponse({
   content,
   status = 'info',
   type = 'embed',
+  color,
 }: {
   interactionToken: string;
   content: string;
   status?: 'error' | 'success' | 'warning' | 'info';
   type?: 'text' | 'embed';
+  color?: number;
 }) {
   try {
     if (!content) throw new Error('Content is required');
 
-    const responseContent = await buildResponse(content, type, status);
+    const responseContent = await buildResponse(content, type, status, color);
     const isPaginated = Array.isArray(responseContent) && responseContent.length > 1;
 
     const body = {

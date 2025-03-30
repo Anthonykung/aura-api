@@ -24,6 +24,7 @@ import { translateText } from "@/lib/azureTranslate";
 import { sendMessageToGuild } from "@/lib/discord";
 import { Embed, embedSystemMessageBuilder, multiImageEmbedBuilder } from "@/lib/embeds";
 import { MessageEvent } from "@/types/message";
+import sharp from 'sharp';
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID } = process.env;
 
@@ -74,10 +75,20 @@ async function handleImageGeneration(message: any) {
       throw error;
     });
 
+    // fetch the first image
+    const firstImage = await fetch(images[0]);
+    if (!firstImage.ok) throw new Error('Failed to fetch image');
+    const imageBuffer = await firstImage.arrayBuffer();
+    const buffer = Buffer.from(imageBuffer);
+    const { dominant } = await sharp(buffer).stats();
+    const { r, g, b } = dominant;
+    const hex = (r << 16) + (g << 8) + b;
+
     const imageEmbeds = await multiImageEmbedBuilder({
       title: 'Generated Images',
       desc: 'Images generated using AI',
       images: images as string[],
+      color: hex,
     });
 
     await sendMessageToGuild(message.channel_id, imageEmbeds);
@@ -176,8 +187,9 @@ async function handleGenerativeResponse(message: any) {
   console.log('Response:', response);
 
   const responseEmbed = await embedSystemMessageBuilder({
-    content: response as string,
+    content: response.content as string,
     status: 'info',
+    color: response.color,
   });
 
   await sendMessageToGuild(message.channel_id, responseEmbed);
