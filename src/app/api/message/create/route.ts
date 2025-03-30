@@ -21,29 +21,13 @@
 import generateResponse from "@/lib/azureAI";
 import generateImage from "@/lib/azureImage";
 import { translateText } from "@/lib/azureTranslate";
+import { sendMessageToGuild } from "@/lib/discord";
 import { Embed, embedSystemMessageBuilder, multiImageEmbedBuilder } from "@/lib/embeds";
 import { MessageEvent } from "@/types/message";
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID } = process.env;
 
 export const maxDuration = 60;
-
-async function sendMessageToGuild(channelId: string, embed: Embed[]) {
-  try {
-    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ embeds: embed }),
-    });
-    return await response.json();
-  } catch (error) {
-    console.error('Error sending message to guild:', error);
-    throw error;
-  }
-}
 
 async function handleImageGeneration(message: any) {
   const regex = new RegExp(`^<@${DISCORD_CLIENT_ID}> generate image (\\d+)\\s+(.+)$`);
@@ -125,16 +109,22 @@ async function handleTranslation(message: any) {
     const translatedText = await translateText({
       text: text,
       to: languages,
+    }).catch(async (error) => {
+      console.error('Error translating text:', error);
+      const errorEmbed = await embedSystemMessageBuilder({
+        content: error,
+        status: 'error',
+      });
+      await sendMessageToGuild(message.channel_id, errorEmbed);
+      throw error;
     });
 
     console.log('Translated text:', translatedText);
 
     const translations = await embedSystemMessageBuilder({
-      content: translatedText.flatMap((entry: any) =>
-        entry.translations.map((t: any) =>
-          `${t.to}:\n\n> ${t.text}\n`
-        )
-      ).join('\n'),
+      content: translatedText.translations.map((entry: any) => {
+        return `**${entry.to}**:\n\n> ${entry.text}\n`;
+      }).join('\n'),
       status: 'info',
     });
 
@@ -225,7 +215,9 @@ export async function POST(
           throw new Error('Unknown command');
         }
       }
-      await handleGenerativeResponse(message);
+      else {
+        await handleGenerativeResponse(message);
+      }
       return Response.json({ success: true }, { status: 200 });
     }
     catch (error) {
