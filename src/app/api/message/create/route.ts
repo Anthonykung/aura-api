@@ -94,15 +94,15 @@ async function handleImageGeneration(message: any) {
 }
 
 async function handleTranslation(message: any) {
-  const regexToLanguage = new RegExp(`^<@${DISCORD_CLIENT_ID}> translate to ([a-z]{2}(,[a-z]{2})*)\\s+(.+)$`);
+  const regexToLanguage = new RegExp(`^<@${DISCORD_CLIENT_ID}> translate(?: to ([a-zA-Z-]{2,}(?:\\s*,\\s*[a-zA-Z-]{2,})*))?\\s+(.+)$`);
   const matchToLanguage = message.content.match(regexToLanguage);
 
   const supportedLanguages = await fetch('https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation');
   const languagesJson = await supportedLanguages.json();
 
   if (matchToLanguage) {
-    const toLanguage: string = matchToLanguage[1];
-    const text: string = matchToLanguage[3];
+    const toLanguage: string = matchToLanguage[1] || 'en';
+    const text: string = matchToLanguage[2];
     console.log('To language:', toLanguage);
     console.log('Text:', text);
 
