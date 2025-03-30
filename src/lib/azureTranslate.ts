@@ -29,7 +29,7 @@ export async function translateText({
 }: TranslateOptions): Promise<any> {
   const endpoint = `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0${to.map(lang => `&to=${lang}`).join('')}&profanityAction=Marked`
 
-  console.log('[translateText]', text, to, endpoint)
+  // console.log('[translateText]', text, to, endpoint);
 
   try {
     const res = await fetch(endpoint, {
@@ -47,10 +47,13 @@ export async function translateText({
       throw new Error(`Translation failed: ${res.status} ${res.statusText} - ${error}`)
     }
 
-    const result = await res.json()
-    return result
+    const result = await res.json();
+
+    console.log('Azure Translation Result:', result)
+
+    return result;
   } catch (err) {
-    console.error('[translateText error]', err)
+    console.error('Azure Translation Error:', err)
     throw err
   }
 }

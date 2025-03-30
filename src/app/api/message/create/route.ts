@@ -97,6 +97,9 @@ async function handleTranslation(message: any) {
   const regexToLanguage = new RegExp(`^<@${DISCORD_CLIENT_ID}> translate to ([a-z]{2}(,[a-z]{2})*)\\s+(.+)$`);
   const matchToLanguage = message.content.match(regexToLanguage);
 
+  const supportedLanguages = await fetch('https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation');
+  const languagesJson = await supportedLanguages.json();
+
   if (matchToLanguage) {
     const toLanguage: string = matchToLanguage[1];
     const text: string = matchToLanguage[3];
@@ -119,11 +122,15 @@ async function handleTranslation(message: any) {
       throw error;
     });
 
-    console.log('Translated text:', translatedText);
+    console.log('Translated text:', translatedText[0].translations);
 
     const translations = await embedSystemMessageBuilder({
-      content: translatedText.translations.map((entry: any) => {
-        return `**${entry.to}**:\n\n> ${entry.text}\n`;
+      content: translatedText[0].translations.map((entry: any) => {
+        // Get the language name from the languagesJson
+        const languageDetails = languagesJson.translation[entry.to];
+        const languageName = languageDetails ? languageDetails.nativeName : entry.to;
+        console.log('Language name:', languageName);
+        return `**${languageName}**:\n\n> ${entry.text}\n`;
       }).join('\n'),
       status: 'info',
     });
@@ -132,8 +139,6 @@ async function handleTranslation(message: any) {
   } else {
     console.log('Invalid format');
 
-    const languages = await fetch('https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation');
-    const languagesJson = await languages.json();
     const languagesList = Object.entries(languagesJson.translation).map(([shortName, details]: [string, any]) => {
       return `${details.nativeName}: ${shortName}`;
     });
