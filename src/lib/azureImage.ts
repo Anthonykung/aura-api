@@ -55,7 +55,12 @@ export default async function generateImage({
     if (!response.ok) {
       const error = await response.json();
       console.error("Image generation error:", error);
-      throw new Error(`Image generation failed: ${response.status} ${response.statusText} - ${error.message}`);
+      if (error.error.code === '429') {
+        throw new Error(`Chat completion failed: Azure rate limit exceeded. Please try again later.`);
+      }
+      else {
+        throw new Error(`Chat completion failed: ${error.error.message}`);
+      }
     }
     const responseData = await response.json();
     console.log("Image generation response:", responseData);

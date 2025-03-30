@@ -70,12 +70,19 @@ export default async function generateResponse(text: string) {
     if (!response.ok) {
       const error = await response.json();
       console.error("Chat completion error:", error);
-      throw new Error(`Chat completion failed: ${response.status} ${response.statusText} - ${error.message}`);
+      if (error.error.code === '429') {
+        throw new Error(`Chat completion failed: Azure rate limit exceeded. Please try again later.`);
+      }
+      else {
+        throw new Error(`Chat completion failed: ${error.error.message}`);
+      }
     }
     const responseData = await response.json();
 
+    console.log("Chat completion response:", responseData);
+
     // Get the content of the completion
-    const content = responseData?.body?.choices[0]?.message?.content;
+    const content = responseData?.choices[0]?.message?.content;
 
     return content;
   } catch (error) {

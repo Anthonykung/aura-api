@@ -62,6 +62,16 @@ async function handleImageGeneration(message: any) {
     const images = await generateImage({
       prompt: prompt,
       numberOfImagesToGenerate: numberOfImages,
+    }).catch(async (error) => {
+      console.error('Error generating image:', error);
+
+      const errorEmbed = await embedSystemMessageBuilder({
+        content: error,
+        status: 'error',
+      });
+      await sendMessageToGuild(message.channel_id, errorEmbed);
+
+      throw error;
     });
 
     const imageEmbeds = await multiImageEmbedBuilder({
@@ -147,7 +157,15 @@ async function handleTranslation(message: any) {
 }
 
 async function handleGenerativeResponse(message: any) {
-  const response = await generateResponse(message.content);
+  const response = await generateResponse(message.content).catch(async (error) => {
+    console.error('Error generating response:', error);
+    const errorEmbed = await embedSystemMessageBuilder({
+      content: error.message,
+      status: 'error',
+    });
+    await sendMessageToGuild(message.channel_id, errorEmbed);
+    throw error;
+  });
 
   console.log('Response:', response);
 
