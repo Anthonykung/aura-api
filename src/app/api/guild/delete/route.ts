@@ -26,13 +26,16 @@ export async function POST(
 ) {
   try {
     const res: {
-      op: number;
-      d: any;
-      t: string;
-      s: number;
+      attempts: number;
+      data: {
+        op: number;
+        d: any;
+        t: string;
+        s: number;
+      };
     } = await request.json();
 
-    const guildData = res.d;
+    const guildData = res.data.d;
 
     // deinitalize guild data
     prisma.guild.update({

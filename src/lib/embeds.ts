@@ -207,7 +207,7 @@ export async function embedSystemMessageBuilder({
   content,
   status = 'info',
 }: {
-  content: string;
+  content: string | { name: string; value: string }[];
   status?: 'error' | 'success' | 'warning' | 'info';
 }): Promise<Embed[]> {
   const colorMap = { error: 0xff0000, success: 0x00ff00, warning: 0xffff00, info: 0x0000ff };

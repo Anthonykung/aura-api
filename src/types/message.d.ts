@@ -64,3 +64,11 @@ export interface Message {
   attachments: [];
   guild_id: string;
 }
+
+export interface MessageEvent {
+  op: number;
+  d: Message; // Reuse the Message interface here
+  s: number;
+  t: string;
+}
+

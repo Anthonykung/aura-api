@@ -19,7 +19,7 @@
 */
 
 import generateResponse from "@/lib/azureAI";
-import { interactionResponseWithId } from "@/lib/interaction";
+import { interactionResponse } from "@/lib/interaction";
 
 const helpText = `
 👋 Hey there! I’m **AURA** — your AI-powered activity host, conversation starter, and community hype-bot.
@@ -50,14 +50,14 @@ Want to learn more about me? Type \`/ about\` 💖
 `.trim();
 
 export default async function Help({
-  id,
+  token,
 }: {
-  id: string;
+  token: string;
 }) {
 
   // const content = await generateResponse('What are you? How do I use this?') || helpText;
 
   const content = helpText;
 
-  await interactionResponseWithId({ interactionId: id, content: content, status: 'info' });
+  await interactionResponse({ interactionToken: token, content: content, status: 'info' });
 }

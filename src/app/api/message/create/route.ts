@@ -22,6 +22,7 @@ import generateResponse from "@/lib/azureAI";
 import generateImage from "@/lib/azureImage";
 import { translateText } from "@/lib/azureTranslate";
 import { Embed, embedSystemMessageBuilder, multiImageEmbedBuilder } from "@/lib/embeds";
+import { MessageEvent } from "@/types/message";
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID } = process.env;
 
@@ -42,109 +43,159 @@ async function sendMessageToGuild(channelId: string, embed: Embed[]) {
   }
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ slug: string }> }
-) {
-  try {
-    const body = await request.json();
+async function handleImageGeneration(message: any) {
+  const regex = new RegExp(`^<@${DISCORD_CLIENT_ID}> generate image (\\d+)\\s+(.+)$`);
+  const match = message.content.match(regex);
 
-    // Check if self is the author
-    if (body.d.author.id === DISCORD_CLIENT_ID) {
-      return Response.json({
-        success: true,
-      }, {
-        status: 200,
-      });
-    }
+  if (match) {
+    const numberOfImages: number = parseInt(match[1], 10);
+    const prompt: string = match[2];
 
-    // Check if mention is present and if self is mentioned
-    const mention = body.d.mentions.find((m: any) => m.id === DISCORD_CLIENT_ID);
-    if (mention && body.d.author.id !== DISCORD_CLIENT_ID) {
-      // Check if message contains a command
+    console.log('Number of images:', numberOfImages);
+    console.log('Prompt:', prompt);
 
-      // generate image command example: <@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>
-      if (body.d.content.startsWith(`<@${DISCORD_CLIENT_ID}> generate image`) || body.d.content.startsWith(`generate image`)) {
-        const regex = /^<@(\d+)> generate image (\d+)\s+(.+)$/;
-        const match = body.d.content.match(regex);
-
-        if (match) {
-          const numberOfImages: number = parseInt(match[2], 10);
-          const prompt: string = match[3];
-
-          console.log('Number of images:', numberOfImages);
-          console.log('Prompt:', prompt);
-
-          const images = await generateImage({
-            prompt: prompt,
-            numberOfImagesToGenerate: numberOfImages,
-          });
-
-          const imageEmbeds = await multiImageEmbedBuilder({
-            title: 'Generated Images',
-            desc: 'Images generated using AI',
-            images: images as string[],
-          });
-
-          await sendMessageToGuild(body.d.channel_id, imageEmbeds);
-        } else {
-          console.log('Invalid format');
-
-          const responseEmbed = await embedSystemMessageBuilder({
-            content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
-            status: 'error',
-          });
-
-          await sendMessageToGuild(body.d.channel_id, responseEmbed);
-        }
-      }
-
-      return Response.json({
-        success: true,
-      }, {
-        status: 200,
-      });
-    }
-
-    // // Pass to generative model
-    // const response = await generateResponse(body.d.content);
-
-    // console.log('Response:', response);
-
-    // const responseEmbed = await embedSystemMessageBuilder({
-    //   content: response as string,
-    //   status: 'info',
-    // });
-
-    // await sendMessageToGuild(body.d.channel_id, responseEmbed);
-
-    // Send Translated Message
-    const translations = await translateText({
-      text: body.d.content,
+    const images = await generateImage({
+      prompt: prompt,
+      numberOfImagesToGenerate: numberOfImages,
     });
-    const translatedText = await embedSystemMessageBuilder({
-      content: translations.flatMap((entry: any, entryIndex: number) =>
-        entry.translations.map((t: any, langIndex: number) =>
+
+    const imageEmbeds = await multiImageEmbedBuilder({
+      title: 'Generated Images',
+      desc: 'Images generated using AI',
+      images: images as string[],
+    });
+
+    await sendMessageToGuild(message.channel_id, imageEmbeds);
+  } else {
+    console.log('Invalid format');
+
+    const responseEmbed = await embedSystemMessageBuilder({
+      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
+      status: 'error',
+    });
+
+    await sendMessageToGuild(message.channel_id, responseEmbed);
+  }
+}
+
+async function handleTranslation(message: any) {
+  const regexToLanguage = new RegExp(`^<@${DISCORD_CLIENT_ID}> translate to ([a-z]{2}(,[a-z]{2})*)\\s+(.+)$`);
+  const matchToLanguage = message.content.match(regexToLanguage);
+
+  if (matchToLanguage) {
+    const toLanguage: string = matchToLanguage[1];
+    const text: string = matchToLanguage[3];
+    console.log('To language:', toLanguage);
+    console.log('Text:', text);
+
+    const languages = toLanguage.split(',');
+    console.log('Languages:', languages);
+
+    const translatedText = await translateText({
+      text: text,
+      to: languages,
+    });
+
+    console.log('Translated text:', translatedText);
+
+    const translations = await embedSystemMessageBuilder({
+      content: translatedText.flatMap((entry: any) =>
+        entry.translations.map((t: any) =>
           `${t.to}:\n\n> ${t.text}\n`
         )
       ).join('\n'),
       status: 'info',
     });
 
-    await sendMessageToGuild(body.d.channel_id, translatedText);
+    await sendMessageToGuild(message.channel_id, translations);
+  } else {
+    console.log('Invalid format');
 
-    return Response.json({
-      success: true,
-    }, {
-      status: 200,
+    const languages = await fetch('https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation');
+    const languagesJson = await languages.json();
+    const languagesList = Object.entries(languagesJson.translation).map(([shortName, details]: [string, any]) => {
+      return `${details.nativeName}: ${shortName}`;
     });
+    const languagesString = languagesList.join('\n');
+
+    const responseEmbed = await embedSystemMessageBuilder({
+      content: [
+        {
+          "name": "Invalid format",
+          "value": `Invalid format. Please use the following format:\n\nTo English:\`<@${DISCORD_CLIENT_ID}> translate <text to translate>\`\n\nTranslate to Language:\`<@${DISCORD_CLIENT_ID}> translate to <language> <text to translate>\`\n\nTranslate to Multiple Languages:\`<@${DISCORD_CLIENT_ID}> translate to <language1,language2,...> <text to translate>\``,
+        },
+        {
+          "name": "Available Languages",
+          "value": languagesString,
+        },
+      ],
+      status: 'error',
+    });
+
+    await sendMessageToGuild(message.channel_id, responseEmbed);
   }
-  catch (e) {
-    return Response.json({
-      success: false,
-      error: e
-    }, {
-      status: 500,
-    });
+}
+
+async function handleGenerativeResponse(message: any) {
+  const response = await generateResponse(message.content);
+
+  console.log('Response:', response);
+
+  const responseEmbed = await embedSystemMessageBuilder({
+    content: response as string,
+    status: 'info',
+  });
+
+  await sendMessageToGuild(message.channel_id, responseEmbed);
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const body: {
+      attempts: number;
+      data: MessageEvent;
+    } = await request.json();
+    console.log('Message Create Request: ', body);
+    const message = body.data.d;
+    try {
+      if (message.author.id === DISCORD_CLIENT_ID) {
+        return Response.json({ success: true }, { status: 200 });
+      }
+      const mention = message.mentions.find((m: any) => m.id === DISCORD_CLIENT_ID);
+      if (mention && message.author.id !== DISCORD_CLIENT_ID) {
+        if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> generate image`) || message.content.startsWith(`generate image`)) {
+          await handleImageGeneration(message);
+        } else if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> translate`)) {
+          await handleTranslation(message);
+        }
+        return Response.json({ success: true }, { status: 200 });
+      }
+      await handleGenerativeResponse(message);
+      return Response.json({ success: true }, { status: 200 });
+    }
+    catch (error) {
+      console.error('Error handling message:', error);
+      if (body.attempts === 0) {
+        const errorEmbed = await embedSystemMessageBuilder({
+          content: 'An error occurred while processing your request. We are attempting to fix it...',
+          status: 'warning',
+        });
+        await sendMessageToGuild(message.channel_id, errorEmbed);
+      }
+      else if (body.attempts === 9) {
+        const retryEmbed = await embedSystemMessageBuilder({
+          content: 'An error occurred while processing your request. We are unable to fix it. Please try again later.',
+          status: 'error',
+        });
+        await sendMessageToGuild(message.channel_id, retryEmbed);
+      }
+      return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    }
+  } catch (e) {
+    console.error('Error in POST handler:', e);
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

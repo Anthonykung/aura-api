@@ -20,7 +20,7 @@
 
 import prisma from '@/lib/prisma';
 import { interactionPagination } from '@/lib/interaction';
-import { Interaction } from '@/types/interactions';
+import { Interaction, InteractionRequest } from '@/types/interactions';
 import Help from '@/commands/help';
 import About from '@/commands/about';
 
@@ -30,29 +30,34 @@ export async function POST(
 ) {
   try {
     const body: {
-      op: number;
-      d: any;
-      t: string;
-      s: number;
+      attempts: number;
+      data: {
+        op: number;
+        d: InteractionRequest;
+        t: string;
+        s: number;
+      };
     } = await request.json();
 
     console.log('Interaction Request: ', body);
 
-    const data = JSON.parse(body.d);
-
-    console.log(`Interaction received: ${data}`);
+    const interaction: InteractionRequest = body.data.d;
 
     // If type 2 Application Command
-    if (data.type === 2) {
+    if (interaction.type === 2) {
       // Call handler depending on command name
-      switch (data.data.name) {
+      switch (interaction.data.name) {
         case 'help':
           // Help Command Handler
-          Help(data.data.id);
+          await Help({
+            token: interaction.token,
+          });
           break;
         case 'about':
           // About Command Handler
-          About(data.data.id);
+          await About({
+            token: interaction.token,
+          });
           break;
         default:
           break;
@@ -60,7 +65,7 @@ export async function POST(
     }
 
     // If type 3 Message Component
-    if (data.type === 3) {
+    if (interaction.type === 3) {
       // If type 3 Message Component is a button
       // if (data.components[0].type === 2) {
       //   // If button is a pagination button
@@ -74,6 +79,12 @@ export async function POST(
       //   }
       // }
     }
+
+    // Return success if catch block did not catch any errors
+    return Response.json(
+      { success: true },
+      { status: 200 }
+    );
   } catch (error) {
     return Response.json(
       { success: false, error: error },

@@ -19,7 +19,7 @@
 */
 
 import generateResponse from "@/lib/azureAI";
-import { interactionResponseWithId } from "@/lib/interaction";
+import { interactionResponse } from "@/lib/interaction";
 
 const aboutText = `
 🎉 **AURA** stands for **Advanced Universal Recreational Activities**, and I'm here to make your server more social, creative, and downright awesome.
@@ -38,14 +38,14 @@ Let’s make your community unforgettable 💬💖
 `.trim();
 
 export default async function About({
-  id,
+  token,
 }: {
-  id: string;
+  token: string;
 }) {
 
   // const content = await generateResponse('Tell me about yourself') || aboutText;
 
   const content = aboutText;
 
-  await interactionResponseWithId({ interactionId: id, content: content, status: 'info' });
+  await interactionResponse({ interactionToken: token, content: content, status: 'info' });
 }

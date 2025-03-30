@@ -30,10 +30,10 @@ const connectionString = process.env.AZURE_SERVICE_BUS_CONNECTION_STRING as stri
 const sbClient = new ServiceBusClient(connectionString);
 
 // Create a sender for the queue
-const sender = sbClient.createSender("aura-gateway-sender");
+const sender = sbClient.createSender("aura-api-sender");
 
 // Create a receiver for the queue
-const receiver = sbClient.createReceiver("aura-gateway-receiver");
+const receiver = sbClient.createReceiver("aura-api-receiver");
 
 // Send a message to the queue
 export async function sendMessage(message: ServiceBusMessage | ServiceBusMessageBatch) {

@@ -25,7 +25,7 @@ type TranslateOptions = {
 
 export async function translateText({
   text,
-  to=["fr", "es", "zh-Hant", "ja", "ko"]
+  to=["en"]
 }: TranslateOptions): Promise<any> {
   const endpoint = `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0${to.map(lang => `&to=${lang}`).join('')}&profanityAction=Marked`
 

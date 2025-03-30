@@ -19,25 +19,19 @@
 */
 
 import { AzureOpenAI } from "openai";
+// import { AzureKeyCredential } from "@azure/core-auth";
 
 // You will need to set these environment variables or edit the following values
-const endpoint = process.env.AZURE_OPENAI_ENDPOINT || "Your endpoint";
-const apiKey = process.env.AZURE_OPENAI_API_KEY || "Your API key";
+const endpoint = process.env.AZURE_OPENAI_ENDPOINT as string;
+const apiKey = process.env.AZURE_OPENAI_API_KEY as string;
 
-// Required Azure OpenAI deployment name and API version
-const apiVersion = process.env.OPENAI_API_VERSION || "2024-07-01";
-const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME || "dall-e-3";
-
-function getClient(): AzureOpenAI {
-  return new AzureOpenAI({
-    endpoint,
-    apiKey,
-    apiVersion,
-    deployment: deploymentName,
-  });
-}
-
-const client = getClient();
+const client = new AzureOpenAI({
+  // azureADTokenProvider: new AzureKeyCredential(apiKey),
+  deployment: process.env.AZURE_OPENAI_DEPLOYMENT as string,
+  apiVersion: "2023-05-15",
+  apiKey: apiKey,
+  endpoint: endpoint,
+});
 
 export default async function generateImage({
   prompt,

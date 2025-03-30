@@ -154,19 +154,114 @@ export enum InteractionContextType {
 interface InteractionRequest {
   app_permissions: string;
   application_id: string;
-  authorizing_integration_owners: AuthorizingIntegrationOwners;
-  channel: Channel;
+  attachment_size_limit: number;
+  authorizing_integration_owners: Record<string, string>;
+  channel: {
+    flags: number;
+    guild_id: string;
+    id: string;
+    last_message_id: string;
+    name: string;
+    nsfw: boolean;
+    parent_id: string;
+    permissions: string;
+    position: number;
+    rate_limit_per_user: number;
+    topic: string | null;
+    type: number;
+  };
   channel_id: string;
   context: number;
-  data: Data;
+  data: {
+    id: string;
+    name: string;
+    type: number;
+  };
   entitlement_sku_ids: string[];
-  entitlements: any[]; // Could be replaced with a more specific type if structure is known
-  guild: Guild;
+  entitlements: {
+    id: string;
+    sku_id: string;
+    application_id: string;
+    user_id: string;
+    promotion_id: string | null;
+    type: number;
+    deleted: boolean;
+    gift_code_flags: number;
+    consumed: boolean;
+    starts_at: string;
+    ends_at: string;
+    guild_id: string;
+    subscription_id: string;
+  }[];
+  guild: {
+    features: (
+      | "ANIMATED_BANNER"
+      | "ANIMATED_ICON"
+      | "APPLICATION_COMMAND_PERMISSIONS_V2"
+      | "AUTO_MODERATION"
+      | "BANNER"
+      | "COMMUNITY"
+      | "CREATOR_MONETIZABLE_PROVISIONAL"
+      | "CREATOR_STORE_PAGE"
+      | "DEVELOPER_SUPPORT_SERVER"
+      | "DISCOVERABLE"
+      | "FEATURABLE"
+      | "INVITES_DISABLED"
+      | "INVITE_SPLASH"
+      | "MEMBER_VERIFICATION_GATE_ENABLED"
+      | "MORE_SOUNDBOARD"
+      | "MORE_STICKERS"
+      | "NEWS"
+      | "PARTNERED"
+      | "PREVIEW_ENABLED"
+      | "RAID_ALERTS_DISABLED"
+      | "ROLE_ICONS"
+      | "ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE"
+      | "ROLE_SUBSCRIPTIONS_ENABLED"
+      | "SOUNDBOARD"
+      | "TICKETED_EVENTS_ENABLED"
+      | "VANITY_URL"
+      | "VERIFIED"
+      | "VIP_REGIONS"
+      | "WELCOME_SCREEN_ENABLED"
+    )[];
+    id: string;
+    locale: string;
+  };
   guild_id: string;
   guild_locale: string;
   id: string;
   locale: string;
-  member: Member;
+  member: {
+    avatar: string | null;
+    banner: string | null;
+    communication_disabled_until: string | null;
+    deaf: boolean;
+    flags: number;
+    joined_at: string;
+    mute: boolean;
+    nick: string | null;
+    pending: boolean;
+    permissions: string;
+    premium_since: string | null;
+    roles: string[];
+    unusual_dm_activity_until: string | null;
+    user: {
+      avatar: string;
+      avatar_decoration_data: {
+        sku_id: string;
+        asset: string;
+      } | null;
+      clan: string | null;
+      collectibles: any | null; // No idea what this is
+      discriminator: string;
+      global_name: string;
+      id: string;
+      primary_guild: string | null;
+      public_flags: number;
+      username: string;
+    };
+  };
   token: string;
   type: number;
   version: number;
