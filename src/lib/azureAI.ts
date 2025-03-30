@@ -88,7 +88,13 @@ export default async function generateResponse(text: string) {
     }
 
     // Get the content of the completion
-    const content = JSON.parse(responseData?.choices[0]?.message?.content);
+    let content = JSON.parse(responseData?.choices[0]?.message?.content);
+
+    // check if content.color is number
+    if (typeof content.color !== "number") {
+      // Convert color to number
+      content.color = parseInt(content.color.replace("#", ""), 16);
+    }
 
     return content;
   } catch (error) {
