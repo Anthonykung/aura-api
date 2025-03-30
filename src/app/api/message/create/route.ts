@@ -50,14 +50,30 @@ async function handleImageGeneration(message: any) {
   const match = message.content.match(regex);
 
   if (match) {
-    let numberOfImages: number = parseInt(match[1], 10);
+    const numberOfImages: number = parseInt(match[1], 10);
     const prompt: string = match[2];
-
-    // Azure limitation
-    numberOfImages = 1;
 
     console.log('Number of images:', numberOfImages);
     console.log('Prompt:', prompt);
+
+    // Check if the number of images is less than or equal to 10
+    if (numberOfImages > 10) {
+      const responseEmbed = await embedSystemMessageBuilder({
+        content: `The maximum number of images you can generate is 10. Please try again with a smaller number.`,
+        status: 'error',
+      });
+      await sendMessageToGuild(message.channel_id, responseEmbed);
+      return;
+    }
+    // Check if the prompt is empty
+    if (prompt.trim() === '') {
+      const responseEmbed = await embedSystemMessageBuilder({
+        content: `The prompt cannot be empty. Please provide a valid prompt.`,
+        status: 'error',
+      });
+      await sendMessageToGuild(message.channel_id, responseEmbed);
+      return;
+    }
 
     const images = await generateImage({
       prompt: prompt,
@@ -84,13 +100,8 @@ async function handleImageGeneration(message: any) {
   } else {
     console.log('Invalid format');
 
-    // const responseEmbed = await embedSystemMessageBuilder({
-    //   content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
-    //   status: 'error',
-    // });
-
     const responseEmbed = await embedSystemMessageBuilder({
-      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image 1 <prompt>\``,
+      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> generate image <number of images to generate> <prompt>\``,
       status: 'error',
     });
 
