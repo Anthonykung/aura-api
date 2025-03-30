@@ -206,12 +206,16 @@ export async function singleStringColorEmbedBuilder(content: string, color: numb
 export async function embedSystemMessageBuilder({
   content,
   status = 'info',
+  color,
 }: {
   content: string | { name: string; value: string }[];
   status?: 'error' | 'success' | 'warning' | 'info';
+  color?: number;
 }): Promise<Embed[]> {
   const colorMap = { error: 0xff0000, success: 0x00ff00, warning: 0xffff00, info: 0x0000ff };
-  return buildEmbeds(content, colorMap[status]);
+
+  const embedColor = color ?? colorMap[status];
+  return buildEmbeds(content, embedColor);
 }
 
 // Function to build embeds with multiple fields
@@ -224,12 +228,13 @@ export async function multiImageEmbedBuilder({
   title,
   desc,
   images,
+  color = 0x3498db, // Nice blue color
 }: {
   title: string;
   desc: string;
   images: string[];
+  color?: number;
 }): Promise<Embed[]> {
-  const color = 0x3498db; // Nice blue color
   return images.map((url) => ({
     type: "rich",
     title,

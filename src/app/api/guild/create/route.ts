@@ -125,6 +125,7 @@ export async function POST(request: Request) {
       await updateGuildData(guildData.id, {
         initialized: new Date(),
         auraVersion: process.env.AURA_VERSION,
+        auraChannelId: guild.auraChannelId || messageChannelId,
       });
     }
 

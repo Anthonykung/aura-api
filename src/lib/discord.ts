@@ -21,6 +21,7 @@
 */
 
 import nacl from 'tweetnacl';
+import { Embed } from './embeds';
 
 // Import credentials
 const { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_TOKEN, DISCORD_PUBLIC_KEY } = process.env;
@@ -36,6 +37,23 @@ export async function discordValidateSignature(timestamp: string, body: string, 
   catch (err) {
     console.error('Error validating signature: ', err);
     return false;
+  }
+}
+
+export async function sendMessageToGuild(channelId: string, embed: Embed[]) {
+  try {
+    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ embeds: embed }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error sending message to guild:', error);
+    throw error;
   }
 }
 
