@@ -32,11 +32,8 @@ function createMessages({
   return {
     messages: [
       { role: "system", content: systemInstruction },
-      { role: "assistant", content: "{\"color\":4879359,\"content\":\"Hello!I'mAURA,yourfriendlyAIfunbot.HowcanIhelpyoutoday?\"}" },
-      {
-        role: "user",
-        content: text,
-      },
+      { role: "assistant", content: "{\"color\":4879359,\"content\":\"Hello! I'm AURA, your friendly AI fun bot. How can I help you today?\"}" },
+      { role: "user", content: text, },
     ],
     model: process.env.AZURE_CHAT_MODEL as string,
   };
@@ -55,7 +52,7 @@ export default async function generateResponse(text: string) {
     messages: messages.messages,
     model: messages.model,
     // temperature: 0.7,
-    max_tokens: 128,
+    max_tokens: 512,
     // top_p: 1,
     // frequency_penalty: 0,
     // presence_penalty: 0,
