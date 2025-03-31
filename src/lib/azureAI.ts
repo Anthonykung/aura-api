@@ -71,6 +71,9 @@ export default async function generateResponse(text: string) {
       if (error.error.code === '429') {
         throw new Error(`Chat completion failed: Azure rate limit exceeded. Please try again later.`);
       }
+      else if (error.error.code === 'content_filter') {
+        throw new Error(`Chat completion failed: Content filter triggered. Please try again later.`);
+      }
       else {
         throw new Error(`Chat completion failed: ${error.error.message}`);
       }
