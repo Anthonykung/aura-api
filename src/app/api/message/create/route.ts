@@ -23,7 +23,8 @@ import generateImage from "@/lib/azureImage";
 import { translateText } from "@/lib/azureTranslate";
 import { sendMessageToGuild } from "@/lib/discord";
 import { Embed, embedSystemMessageBuilder, multiImageEmbedBuilder } from "@/lib/embeds";
-import { MessageEvent } from "@/types/message";
+import prisma from "@/lib/prisma";
+import { Message, MessageEvent } from "@/types/message";
 import sharp from 'sharp';
 
 const { DISCORD_TOKEN, DISCORD_CLIENT_ID } = process.env;
@@ -195,6 +196,55 @@ async function handleGenerativeResponse(message: any) {
   await sendMessageToGuild(message.channel_id, responseEmbed);
 }
 
+async function handleAuraChannel(message: Message) {
+  const channelMentions = message.content.match(/<#(\d+)>/g);
+  if (channelMentions && channelMentions.length === 1) {
+    const guildMember = await fetch(`https://discord.com/api/v10/guilds/${message.guild_id}/members/${message.author.id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bot ${DISCORD_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!guildMember.ok) {
+      console.error('Error fetching guild member:', guildMember.statusText);
+      throw new Error('Failed to fetch guild member');
+    }
+    const guildMemberData = await guildMember.json();
+    // If permission is (1 << 3)
+    if (guildMemberData && guildMemberData.permissions && (guildMemberData.permissions & (1 << 3)) === (1 << 3)) {
+      const channelId = channelMentions[0].match(/\d+/)?.[0];
+      await prisma.guild.update({
+        where: {
+          guildId: message.guild_id,
+        },
+        data: {
+          auraChannelId: channelId,
+        },
+      });
+      const embed = await embedSystemMessageBuilder({
+        content: `Aura channel set to <#${channelId}>`,
+        status: 'success',
+      });
+      await sendMessageToGuild(message.channel_id, embed);
+    }
+    else {
+      const embed = await embedSystemMessageBuilder({
+        content: `You do not have permission to set the aura channel.`,
+        status: 'error',
+      });
+      await sendMessageToGuild(message.channel_id, embed);
+    }
+  }
+  else {
+    const embed = await embedSystemMessageBuilder({
+      content: `Invalid format. Please use the following format: \`<@${DISCORD_CLIENT_ID}> set aura channel <#channel_id>\``,
+      status: 'error',
+    });
+    await sendMessageToGuild(message.channel_id, embed);
+  }
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -228,6 +278,8 @@ export async function POST(
           await handleImageGeneration(message);
         } else if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> translate`)) {
           await handleTranslation(message);
+        } else if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> set aura channel`)) {
+          await handleAuraChannel(message);
         } else {
           throw new Error('Unknown command');
         }
