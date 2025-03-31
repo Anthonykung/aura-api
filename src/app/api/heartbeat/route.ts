@@ -39,17 +39,30 @@ export async function POST(
       },
     });
 
+    if (!servers || servers.length === 0) {
+      return Response.json({
+        success: false,
+        message: 'No servers found',
+      });
+    }
+
     // For all servers, generate a hourly question
-    const content = await generateResponse(`Current time is ${new Date().toLocaleString('en-US', {
+    const response = await generateResponse(`Current time is ${new Date().toLocaleString('en-US', {
       timeZone: 'America/Los_Angeles',
-    })}. Generate a question for the following servers: ${JSON.stringify(servers)}`);
+    })}. Generate a fun question for the server to answer. The question should be fun and engaging, and should not be too serious or boring.`);
 
     // Build the response
     const embed = await embedSystemMessageBuilder({
-      content: content,
+      content: response.content,
+      color: response.color,
     });
 
     for (const server of servers) {
+      // Check if channel ID and embed are valid
+      if (!server.auraChannelId || !embed || embed.length === 0) {
+        console.error('Invalid channel ID or embed');
+        continue;
+      }
       // Send the message to the server
       await sendMessageToGuild(server.auraChannelId as string, embed);
     }
