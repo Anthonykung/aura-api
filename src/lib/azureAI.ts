@@ -39,7 +39,10 @@ function createMessages({
   };
 }
 
-export default async function generateResponse(text: string) {
+export default async function generateResponse(text: string): Promise<{
+  content: string;
+  color: number;
+}> {
   const messages = createMessages({ text });
 
   const url = `${endpoint}`;
@@ -60,6 +63,13 @@ export default async function generateResponse(text: string) {
   };
 
   try {
+    let content: {
+      content: string;
+      color: number | string;
+    } = {
+      content: "",
+      color: "#0000ff",
+    };
     const response = await fetch(url, {
       method: "POST",
       headers: headers,
@@ -72,23 +82,25 @@ export default async function generateResponse(text: string) {
         throw new Error(`Chat completion failed: Azure rate limit exceeded. Please try again later.`);
       }
       else if (error.error.code === 'content_filter') {
-        throw new Error(`Chat completion failed: Content filter triggered. Please try again later.`);
+        content = await generateResponse(`Inappropriate content detected. Please write a warning message to the user.`);
       }
       else {
         throw new Error(`Chat completion failed: ${error.error.message}`);
       }
     }
-    let responseData = await response.json();
+    else {
+      let responseData = await response.json();
 
-    console.log("Chat completion response:", responseData);
+      console.log("Chat completion response:", responseData);
 
-    // Check if response starts with ```json and/or end with ```
-    if (responseData?.choices[0]?.message?.content.startsWith("```json")) {
-      responseData.choices[0].message.content = responseData.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "");
+      // Check if response starts with ```json and/or end with ```
+      if (responseData?.choices[0]?.message?.content.startsWith("```json")) {
+        responseData.choices[0].message.content = responseData.choices[0].message.content.replace(/```json/g, "").replace(/```/g, "");
+      }
+
+      // Get the content of the completion
+      content = JSON.parse(responseData?.choices[0]?.message?.content);
     }
-
-    // Get the content of the completion
-    let content = JSON.parse(responseData?.choices[0]?.message?.content);
 
     // check if content.color is number
     if (typeof content.color !== "number") {
@@ -96,7 +108,10 @@ export default async function generateResponse(text: string) {
       content.color = parseInt(content.color.replace("#", ""), 16);
     }
 
-    return content;
+    return {
+      content: content.content,
+      color: content.color as number,
+    };
   } catch (error) {
     console.error("Error generating response:", error);
     throw error;

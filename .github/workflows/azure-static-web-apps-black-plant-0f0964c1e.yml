@@ -35,7 +35,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
-          AURA_SYSTEM_INSTRUCTIONS: ${{ secrets.AURA_SYSTEM_INSTRUCTIONS }}
+          AURA_SYSTEM_INSTRUCTION: ${{ secrets.AURA_SYSTEM_INSTRUCTION }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
