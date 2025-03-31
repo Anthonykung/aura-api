@@ -281,7 +281,7 @@ export async function POST(
         } else if (message.content.startsWith(`<@${DISCORD_CLIENT_ID}> set aura channel`)) {
           await handleAuraChannel(message);
         } else {
-          throw new Error('Unknown command');
+          await handleGenerativeResponse(message);
         }
       }
       else {
